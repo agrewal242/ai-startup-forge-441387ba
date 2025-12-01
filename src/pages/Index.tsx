@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Plane, LogOut, Brain, Database, Sparkles, TrendingUp, MapPin, Globe2 } from "lucide-react";
+import { LogOut, Brain, Database, Sparkles, TrendingUp, MapPin, Globe2 } from "lucide-react";
 import GlobeMap from "@/components/GlobeMap";
+import { SmartTripLogo } from "@/components/SmartTripLogo";
 
 const Index = () => {
   const [user, setUser] = useState<any>(null);
@@ -40,12 +41,9 @@ const Index = () => {
       <nav className="border-b bg-card/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="relative">
-              <Plane className="h-7 w-7 text-primary animate-pulse" />
-              <div className="absolute inset-0 h-7 w-7 text-primary opacity-20 animate-ping" />
-            </div>
+            <SmartTripLogo size={36} className="text-primary" />
             <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-primary via-primary/80 to-secondary bg-clip-text text-transparent">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
                 SmartTrip AI
               </h1>
             </div>

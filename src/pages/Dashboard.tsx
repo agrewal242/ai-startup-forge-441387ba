@@ -4,10 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plane, LogOut, Plus, Calendar, Users, DollarSign, Sparkles, Loader2, Trash2 } from "lucide-react";
+import { LogOut, Plus, Calendar, Users, DollarSign, Sparkles, Loader2, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { format } from "date-fns";
+import { SmartTripLogo } from "@/components/SmartTripLogo";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -197,7 +198,7 @@ const Dashboard = () => {
       <nav className="border-b bg-card/50 backdrop-blur">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <Plane className="h-6 w-6 text-primary" />
+            <SmartTripLogo size={28} className="text-primary" />
             <h1 className="text-xl font-bold">SmartTrip AI</h1>
           </div>
           <div className="flex gap-2">
@@ -226,7 +227,7 @@ const Dashboard = () => {
         ) : trips.length === 0 ? (
           <Card className="text-center py-12">
             <CardContent className="pt-6">
-              <Plane className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <SmartTripLogo size={48} className="mx-auto mb-4 text-muted-foreground" />
               <h3 className="text-xl font-semibold mb-2">No trips yet</h3>
               <p className="text-muted-foreground mb-6">
                 Start planning your first trip with our AI-powered agents

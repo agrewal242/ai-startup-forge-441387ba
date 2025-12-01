@@ -39,6 +39,51 @@ interface POIDetails {
   url?: string;
 }
 
+// Geocoding function with Nominatim fallback
+async function geocodeDestination(destination: string, apiKey: string): Promise<{ lat: number; lon: number } | null> {
+  // Try OpenTripMap first
+  console.log(`Trying OpenTripMap geocoding for: ${destination}`);
+  const geonameUrl = `https://api.opentripmap.com/0.1/en/places/geoname?name=${encodeURIComponent(destination)}&apikey=${apiKey}`;
+  
+  try {
+    const geonameResponse = await fetch(geonameUrl);
+    if (geonameResponse.ok) {
+      const geoData = await geonameResponse.json();
+      if (geoData.lat && geoData.lon) {
+        console.log(`OpenTripMap found coordinates: ${geoData.lat}, ${geoData.lon}`);
+        return { lat: geoData.lat, lon: geoData.lon };
+      }
+    }
+  } catch (error) {
+    console.warn(`OpenTripMap geocoding error:`, error);
+  }
+
+  // Fallback to Nominatim (OpenStreetMap)
+  console.log(`OpenTripMap failed, trying Nominatim for: ${destination}`);
+  const nominatimUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(destination)}&format=json&limit=1`;
+  
+  try {
+    const nominatimResponse = await fetch(nominatimUrl, {
+      headers: { 'User-Agent': 'LovableTravelPlanner/1.0' }
+    });
+    
+    if (nominatimResponse.ok) {
+      const nominatimData = await nominatimResponse.json();
+      if (nominatimData.length > 0) {
+        const lat = parseFloat(nominatimData[0].lat);
+        const lon = parseFloat(nominatimData[0].lon);
+        console.log(`Nominatim found coordinates: ${lat}, ${lon}`);
+        return { lat, lon };
+      }
+    }
+  } catch (error) {
+    console.warn(`Nominatim geocoding error:`, error);
+  }
+
+  console.warn(`Both geocoding services failed for: ${destination}`);
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -58,42 +103,18 @@ serve(async (req) => {
 
     console.log(`Fetching POIs for: ${destination}`);
 
-    // Step 1: Geocode the destination
-    const geonameUrl = `https://api.opentripmap.com/0.1/en/places/geoname?name=${encodeURIComponent(destination)}&apikey=${apiKey}`;
-    const geonameResponse = await fetch(geonameUrl);
-    
-    if (!geonameResponse.ok) {
-      console.warn(`Geocoding failed for ${destination}: ${geonameResponse.status} ${geonameResponse.statusText}`);
+    // Step 1: Geocode the destination (with fallback)
+    const coords = await geocodeDestination(destination, apiKey);
+
+    if (!coords) {
       return new Response(
-        JSON.stringify({
-          destination,
-          center: null,
-          pois: []
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
+        JSON.stringify({ destination, center: null, pois: [] }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const geoData = await geonameResponse.json();
-    const { lat, lon } = geoData;
-
-    if (!lat || !lon) {
-      console.warn('Could not find coordinates for destination', destination, geoData);
-      return new Response(
-        JSON.stringify({
-          destination,
-          center: null,
-          pois: []
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
-    }
-
-    console.log(`Coordinates found: ${lat}, ${lon}`);
+    const { lat, lon } = coords;
+    console.log(`Using coordinates: ${lat}, ${lon}`);
 
     // Step 2: Fetch POIs in radius (10km)
     const radius = 10000; // 10km in meters

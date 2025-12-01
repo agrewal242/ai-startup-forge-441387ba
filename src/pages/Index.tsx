@@ -128,16 +128,7 @@ const Index = () => {
 
         {/* CTA Section */}
         <div className="max-w-4xl mx-auto text-center">
-          <Card className="p-12 bg-gradient-to-br from-primary/5 to-secondary/5 border-2">
-            <h2 className="text-3xl font-bold mb-4">Ready to Plan Your Next Adventure?</h2>
-            <p className="text-lg text-muted-foreground mb-8">
-              Let our AI agents create a personalized itinerary in minutes
-            </p>
-            <Button size="lg" className="text-lg px-12 py-6" onClick={() => navigate("/plan-trip")}>
-              <Sparkles className="mr-2 h-5 w-5" />
-              Get Started Free
-            </Button>
-          </Card>
+          
         </div>
       </main>
 

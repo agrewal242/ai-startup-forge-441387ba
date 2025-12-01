@@ -82,6 +82,10 @@ const Index = () => {
               <TrendingUp className="mr-2 h-5 w-5" />
               View My Trips
             </Button>
+            <Button size="lg" variant="secondary" className="text-lg px-8 py-6" onClick={() => navigate("/project-overview")}>
+              <Database className="mr-2 h-5 w-5" />
+              Project Overview
+            </Button>
           </div>
         </div>
 

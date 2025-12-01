@@ -48,7 +48,6 @@ const Index = () => {
               <h1 className="text-xl font-bold bg-gradient-to-r from-primary via-primary/80 to-secondary bg-clip-text text-transparent">
                 SmartTrip AI
               </h1>
-              <p className="text-[10px] text-muted-foreground">Powered by Multi-Agent AI</p>
             </div>
           </div>
           <Button variant="ghost" size="sm" onClick={handleLogout}>

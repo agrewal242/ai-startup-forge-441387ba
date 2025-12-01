@@ -244,7 +244,7 @@ const GlobeMap = () => {
   const map = useRef<L.Map | null>(null);
   
   // Randomly select destinations on component mount
-  const destinations = useMemo(() => getRandomDestinations(15), []);
+  const destinations = useMemo(() => getRandomDestinations(24), []);
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return;

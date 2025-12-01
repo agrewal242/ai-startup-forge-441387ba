@@ -334,7 +334,10 @@ const TripItinerary = () => {
 
         {/* Interactive Map */}
         <div className="mb-8">
-          <DestinationMap destination={trip.destination} />
+          <DestinationMap 
+            destination={trip.destination}
+            itinerary={itinerary}
+          />
         </div>
 
         {/* Travel Tips */}

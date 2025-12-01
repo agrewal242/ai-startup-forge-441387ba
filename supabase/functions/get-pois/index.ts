@@ -118,12 +118,15 @@ serve(async (req) => {
 
     // Step 2: Fetch POIs in radius (10km)
     const radius = 10000; // 10km in meters
-    const radiusUrl = `https://api.opentripmap.com/0.1/en/places/radius?radius=${radius}&lon=${lon}&lat=${lat}&kinds=cultural,historic,architecture,interesting_places,natural,museums,churches,theatres&limit=50&apikey=${apiKey}`;
+    const radiusUrl = `https://api.opentripmap.com/0.1/en/places/radius?radius=${radius}&lon=${lon}&lat=${lat}&rate=2&limit=50&apikey=${apiKey}`;
     
+    console.log(`Fetching POIs with URL: ${radiusUrl.replace(apiKey, 'HIDDEN')}`);
     const radiusResponse = await fetch(radiusUrl);
     
     if (!radiusResponse.ok) {
-      throw new Error(`POI fetch failed: ${radiusResponse.statusText}`);
+      const errorText = await radiusResponse.text();
+      console.error(`POI fetch failed (${radiusResponse.status}): ${errorText}`);
+      throw new Error(`POI fetch failed: ${radiusResponse.statusText} - ${errorText}`);
     }
 
     const pois: POI[] = await radiusResponse.json();

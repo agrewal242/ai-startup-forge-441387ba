@@ -6,37 +6,38 @@ import { Card } from "@/components/ui/card";
 import { LogOut, Brain, Database, Sparkles, TrendingUp, MapPin, Globe2 } from "lucide-react";
 import GlobeMap from "@/components/GlobeMap";
 import { SmartTripLogo } from "@/components/SmartTripLogo";
-
 const Index = () => {
   const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
-
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({
+      data: {
+        session
+      }
+    }) => {
       if (!session) {
         navigate("/auth");
       } else {
         setUser(session.user);
       }
     });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+    const {
+      data: {
+        subscription
+      }
+    } = supabase.auth.onAuthStateChange((_, session) => {
       if (!session) {
         navigate("/auth");
       } else {
         setUser(session.user);
       }
     });
-
     return () => subscription.unsubscribe();
   }, [navigate]);
-
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background via-50% to-secondary/10">
+  return <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background via-50% to-secondary/10">
       {/* Navigation */}
       <nav className="border-b bg-card/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -60,9 +61,7 @@ const Index = () => {
         <div className="max-w-5xl mx-auto text-center space-y-8 mb-20">
           <div className="space-y-4">
             <h1 className="text-6xl md:text-7xl font-extrabold tracking-tight">
-              <span className="bg-gradient-to-r from-primary via-primary/90 to-secondary bg-clip-text text-transparent">
-                AI-Powered
-              </span>
+              
               <br />
               <span className="text-foreground">Travel Planning</span>
             </h1>
@@ -148,8 +147,6 @@ const Index = () => {
           <p>© 2025 SmartTrip AI. Powered by Multi-Agent AI Architecture & Amadeus Travel API</p>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;

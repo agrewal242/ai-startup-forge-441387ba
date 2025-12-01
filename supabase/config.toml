@@ -37,3 +37,6 @@ enabled = true
 
 [functions.generate-itinerary]
 verify_jwt = false
+
+[functions.get-pois]
+verify_jwt = false

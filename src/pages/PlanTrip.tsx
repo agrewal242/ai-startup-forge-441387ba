@@ -102,7 +102,10 @@ const PlanTrip = () => {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
-          <div className="flex items-center gap-2">
+          <div 
+            className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" 
+            onClick={() => navigate("/")}
+          >
             <SmartTripLogo size={28} className="text-primary" />
             <h1 className="text-xl font-bold">SmartTrip AI</h1>
           </div>

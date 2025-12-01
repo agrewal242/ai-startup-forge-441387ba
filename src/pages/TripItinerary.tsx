@@ -9,6 +9,7 @@ import { ArrowLeft, Calendar, DollarSign, MapPin, Clock, Users, Plane } from "lu
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { AgentProgressTracker } from "@/components/AgentProgressTracker";
+import { SmartTripLogo } from "@/components/SmartTripLogo";
 
 type Trip = {
   id: string;
@@ -122,11 +123,18 @@ const TripItinerary = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
         <nav className="border-b bg-card/50 backdrop-blur sticky top-0 z-10">
-          <div className="container mx-auto px-4 py-4">
+          <div className="container mx-auto px-4 py-4 flex items-center gap-4">
             <Button variant="ghost" onClick={() => navigate("/dashboard")}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
+              Back
             </Button>
+            <div 
+              className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" 
+              onClick={() => navigate("/")}
+            >
+              <SmartTripLogo size={28} className="text-primary" />
+              <h1 className="text-xl font-bold">SmartTrip AI</h1>
+            </div>
           </div>
         </nav>
         
@@ -188,11 +196,18 @@ const TripItinerary = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
       {/* Header */}
       <nav className="border-b bg-card/50 backdrop-blur sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
           <Button variant="ghost" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
+            Back
           </Button>
+          <div 
+            className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" 
+            onClick={() => navigate("/")}
+          >
+            <SmartTripLogo size={28} className="text-primary" />
+            <h1 className="text-xl font-bold">SmartTrip AI</h1>
+          </div>
         </div>
       </nav>
 

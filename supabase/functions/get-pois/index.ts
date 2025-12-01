@@ -63,14 +63,34 @@ serve(async (req) => {
     const geonameResponse = await fetch(geonameUrl);
     
     if (!geonameResponse.ok) {
-      throw new Error(`Geocoding failed: ${geonameResponse.statusText}`);
+      console.warn(`Geocoding failed for ${destination}: ${geonameResponse.status} ${geonameResponse.statusText}`);
+      return new Response(
+        JSON.stringify({
+          destination,
+          center: null,
+          pois: []
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     const geoData = await geonameResponse.json();
     const { lat, lon } = geoData;
 
     if (!lat || !lon) {
-      throw new Error('Could not find coordinates for destination');
+      console.warn('Could not find coordinates for destination', destination, geoData);
+      return new Response(
+        JSON.stringify({
+          destination,
+          center: null,
+          pois: []
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     console.log(`Coordinates found: ${lat}, ${lon}`);

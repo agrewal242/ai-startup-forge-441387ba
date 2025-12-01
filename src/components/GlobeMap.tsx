@@ -1,9 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Popular travel destinations across all continents
-const destinations = [
+// All available travel destinations across continents
+const allDestinations = [
   // Europe
   { 
     name: 'Paris', 
@@ -233,9 +233,18 @@ const destinations = [
   },
 ];
 
+// Helper function to shuffle and select random destinations
+const getRandomDestinations = (count: number = 15) => {
+  const shuffled = [...allDestinations].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
+};
+
 const GlobeMap = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
+  
+  // Randomly select destinations on component mount
+  const destinations = useMemo(() => getRandomDestinations(15), []);
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
@@ -352,6 +361,7 @@ const GlobeMap = () => {
       <div className="absolute bottom-4 left-4 bg-card/95 backdrop-blur px-4 py-2 rounded-lg shadow-lg border">
         <p className="text-sm text-muted-foreground">
           <span className="font-semibold text-foreground">Click markers</span> to explore destinations
+          <span className="ml-2 text-xs">• {destinations.length} random picks</span>
         </p>
       </div>
     </div>

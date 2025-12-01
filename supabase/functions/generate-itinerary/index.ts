@@ -16,6 +16,133 @@ interface TripData {
   group_size: number;
 }
 
+// Amadeus API Integration
+const AMADEUS_API_KEY = Deno.env.get('AMADEUS_API_KEY');
+const AMADEUS_API_SECRET = Deno.env.get('AMADEUS_API_SECRET');
+const AMADEUS_TOKEN_URL = 'https://test.api.amadeus.com/v1/security/oauth2/token';
+const AMADEUS_BASE_URL = 'https://test.api.amadeus.com/v1';
+
+let amadeusAccessToken: string | null = null;
+let tokenExpiry: number = 0;
+
+async function getAmadeusToken(): Promise<string> {
+  if (amadeusAccessToken && Date.now() < tokenExpiry) {
+    return amadeusAccessToken;
+  }
+
+  const response = await fetch(AMADEUS_TOKEN_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: `grant_type=client_credentials&client_id=${AMADEUS_API_KEY}&client_secret=${AMADEUS_API_SECRET}`,
+  });
+
+  if (!response.ok) {
+    console.error('Amadeus auth failed:', response.status);
+    throw new Error(`Amadeus auth failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+  amadeusAccessToken = data.access_token;
+  tokenExpiry = Date.now() + (data.expires_in * 1000) - 60000;
+  
+  if (!amadeusAccessToken) {
+    throw new Error('Failed to get Amadeus access token');
+  }
+  
+  return amadeusAccessToken;
+}
+
+async function getCityCode(cityName: string): Promise<string | null> {
+  try {
+    const token = await getAmadeusToken();
+    const url = `${AMADEUS_BASE_URL}/reference-data/locations?keyword=${encodeURIComponent(cityName)}&subType=CITY`;
+    
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.error('Amadeus city search failed:', response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    return data.data?.[0]?.iataCode || null;
+  } catch (error) {
+    console.error('Error fetching city code:', error);
+    return null;
+  }
+}
+
+async function getFlightOffers(origin: string, destination: string, departureDate: string, adults: number = 1) {
+  try {
+    const token = await getAmadeusToken();
+    const url = `${AMADEUS_BASE_URL}/shopping/flight-offers?originLocationCode=${origin}&destinationLocationCode=${destination}&departureDate=${departureDate}&adults=${adults}&max=5`;
+    
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.error('Amadeus flight search failed:', response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    return data.data || [];
+  } catch (error) {
+    console.error('Error fetching flight offers:', error);
+    return null;
+  }
+}
+
+async function getHotelOffers(cityCode: string, checkInDate: string, checkOutDate: string) {
+  try {
+    const token = await getAmadeusToken();
+    
+    const hotelsUrl = `${AMADEUS_BASE_URL}/reference-data/locations/hotels/by-city?cityCode=${cityCode}`;
+    const hotelsResponse = await fetch(hotelsUrl, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!hotelsResponse.ok) {
+      console.error('Amadeus hotel search failed:', hotelsResponse.status);
+      return null;
+    }
+
+    const hotelsData = await hotelsResponse.json();
+    const hotelIds = hotelsData.data?.slice(0, 5).map((h: any) => h.hotelId).join(',') || '';
+
+    if (!hotelIds) return null;
+
+    const offersUrl = `${AMADEUS_BASE_URL}/shopping/hotel-offers?hotelIds=${hotelIds}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}`;
+    const offersResponse = await fetch(offersUrl, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!offersResponse.ok) {
+      console.error('Amadeus hotel offers failed:', offersResponse.status);
+      return null;
+    }
+
+    const offersData = await offersResponse.json();
+    return offersData.data || [];
+  } catch (error) {
+    console.error('Error fetching hotel offers:', error);
+    return null;
+  }
+}
+
 async function callLovableAI(messages: any[], systemPrompt: string) {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   
@@ -88,7 +215,35 @@ Keep response under 200 words.`;
 }
 
 async function agent2_DestinationResearcher(trip: TripData, intentAnalysis: string): Promise<string> {
-  console.log("🤖 Agent 2: Destination Researcher - Researching destination");
+  console.log("🤖 Agent 2: Destination Researcher - Researching destination with Amadeus data");
+  
+  let realDataContext = '';
+  
+  if (trip.start_date && trip.end_date) {
+    const cityCode = await getCityCode(trip.destination);
+    
+    if (cityCode) {
+      console.log(`Found city code: ${cityCode} for ${trip.destination}`);
+      
+      const flightOffers = await getFlightOffers('NYC', cityCode, trip.start_date, trip.group_size);
+      const hotelOffers = await getHotelOffers(cityCode, trip.start_date, trip.end_date);
+      
+      if (flightOffers && flightOffers.length > 0) {
+        const prices = flightOffers.slice(0, 3).map((f: any) => `${f.price?.total} ${f.price?.currency}`);
+        realDataContext += `\n\n📊 REAL FLIGHT DATA (Amadeus):\n- Sample prices from NYC: ${prices.join(', ')}\n- ${flightOffers.length} flight options available`;
+      }
+      
+      if (hotelOffers && hotelOffers.length > 0) {
+        const hotelPrices = hotelOffers
+          .slice(0, 3)
+          .map((h: any) => h.offers?.[0]?.price?.total)
+          .filter((p: any) => p)
+          .map((p: any) => `${p} ${hotelOffers[0].offers?.[0]?.price?.currency}`);
+        
+        realDataContext += `\n\n🏨 REAL HOTEL DATA (Amadeus):\n- Sample nightly rates: ${hotelPrices.join(', ')}\n- ${hotelOffers.length} hotels available`;
+      }
+    }
+  }
   
   const prompt = `Research ${trip.destination} for this trip profile:
 
@@ -96,25 +251,25 @@ ${intentAnalysis}
 
 Budget: ${trip.budget_tier}
 Travel Style: ${trip.travel_style}
+${realDataContext}
 
 Provide:
 1. Top 3-5 must-visit locations/districts in ${trip.destination}
 2. Best time considerations (if dates are flexible)
-3. Budget-specific tips for ${trip.budget_tier} tier
+3. Budget-specific tips for ${trip.budget_tier} tier (incorporate real pricing data above)
 4. Cultural insights and local customs
 5. Transportation recommendations
 
 Keep response focused and actionable (300 words max).`;
 
-  const systemPrompt = "You are an expert destination researcher with deep knowledge of global travel destinations. Provide practical, insider information.";
+  const systemPrompt = "You are an expert destination researcher with access to real-time pricing data. Provide practical, insider information with actual cost estimates.";
   
   return await callLovableAI([{ role: "user", content: prompt }], systemPrompt);
 }
 
 async function agent3_ActivityCurator(trip: TripData, intentAnalysis: string, destinationResearch: string): Promise<string> {
-  console.log("🤖 Agent 3: Activity Curator - Curating activities");
+  console.log("🤖 Agent 3: Activity Curator - Curating activities with real hotel data");
   
-  // Conditional branching based on travel_style and budget_tier
   let styleGuidance = "";
   
   switch (trip.travel_style) {
@@ -145,6 +300,26 @@ async function agent3_ActivityCurator(trip: TripData, intentAnalysis: string, de
       break;
   }
 
+  let hotelRecommendations = '';
+  
+  if (trip.start_date && trip.end_date) {
+    const cityCode = await getCityCode(trip.destination);
+    
+    if (cityCode) {
+      const hotelOffers = await getHotelOffers(cityCode, trip.start_date, trip.end_date);
+      
+      if (hotelOffers && hotelOffers.length > 0) {
+        hotelRecommendations = '\n\n🏨 REAL HOTEL OPTIONS (Amadeus):\n';
+        hotelOffers.slice(0, 5).forEach((hotel: any, idx: number) => {
+          const offer = hotel.offers?.[0];
+          if (offer) {
+            hotelRecommendations += `${idx + 1}. ${hotel.hotel?.name || 'Hotel'} - ${offer.price?.total} ${offer.price?.currency}/night\n`;
+          }
+        });
+      }
+    }
+  }
+
   const prompt = `Curate specific activities for ${trip.destination}:
 
 Travel Style: ${trip.travel_style}
@@ -157,6 +332,7 @@ Group Size: ${trip.group_size} people
 
 Destination Research:
 ${destinationResearch}
+${hotelRecommendations}
 
 Provide:
 1. 8-12 specific activities/experiences matched to the travel style
@@ -164,10 +340,11 @@ Provide:
 3. Time requirements for each
 4. Best times of day for each activity
 5. Group-friendly considerations
+6. Accommodation recommendations (use real hotel data above)
 
 Format as a curated list with details. Max 400 words.`;
 
-  const systemPrompt = "You are an expert activity curator who creates personalized travel experiences. Match activities precisely to traveler preferences and constraints.";
+  const systemPrompt = "You are an expert activity curator with access to real hotel pricing data. Create personalized travel experiences with accurate accommodation recommendations.";
   
   return await callLovableAI([{ role: "user", content: prompt }], systemPrompt);
 }

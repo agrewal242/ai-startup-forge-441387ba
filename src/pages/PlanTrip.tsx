@@ -49,7 +49,7 @@ const PlanTrip = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { error } = await supabase.from("trips").insert({
+      const { data: tripData, error } = await supabase.from("trips").insert({
         user_id: user.id,
         destination: data.destination,
         start_date: data.startDate ? format(data.startDate, "yyyy-MM-dd") : null,
@@ -58,14 +58,29 @@ const PlanTrip = () => {
         travel_style: data.travelStyle,
         group_size: data.groupSize,
         status: "draft",
-      });
+      }).select().single();
 
       if (error) throw error;
 
-      toast({
-        title: "Trip created!",
-        description: "Your trip has been saved. AI agents will start planning your itinerary.",
+      // Trigger AI workflow
+      const { error: functionError } = await supabase.functions.invoke('generate-itinerary', {
+        body: { tripId: tripData.id }
       });
+
+      if (functionError) {
+        console.error("Error triggering AI workflow:", functionError);
+        toast({
+          title: "Trip created with warning",
+          description: "Trip saved but AI generation encountered an issue. You can retry from the dashboard.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Trip created!",
+          description: "AI agents are now planning your perfect itinerary. Check the dashboard for real-time updates.",
+        });
+      }
+
       navigate("/dashboard");
     } catch (error: any) {
       toast({

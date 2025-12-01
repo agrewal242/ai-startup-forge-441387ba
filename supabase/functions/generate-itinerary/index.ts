@@ -214,8 +214,9 @@ Keep response under 200 words.`;
   return await callLovableAI([{ role: "user", content: prompt }], systemPrompt);
 }
 
-async function agent2_DestinationResearcher(trip: TripData, intentAnalysis: string): Promise<string> {
-  console.log("🤖 Agent 2: Destination Researcher - Researching destination with Amadeus data");
+// BRANCH 1: Budget-based Destination Researcher
+async function agent2_LuxuryResearcher(trip: TripData, intentAnalysis: string): Promise<string> {
+  console.log("🤖 Agent 2 [LUXURY BRANCH]: Premium Destination Researcher");
   
   let realDataContext = '';
   
@@ -229,76 +230,120 @@ async function agent2_DestinationResearcher(trip: TripData, intentAnalysis: stri
       const hotelOffers = await getHotelOffers(cityCode, trip.start_date, trip.end_date);
       
       if (flightOffers && flightOffers.length > 0) {
-        const prices = flightOffers.slice(0, 3).map((f: any) => `${f.price?.total} ${f.price?.currency}`);
-        realDataContext += `\n\n📊 REAL FLIGHT DATA (Amadeus):\n- Sample prices from NYC: ${prices.join(', ')}\n- ${flightOffers.length} flight options available`;
+        const businessClass = flightOffers.filter((f: any) => 
+          f.travelerPricings?.[0]?.fareDetailsBySegment?.[0]?.cabin === 'BUSINESS'
+        );
+        const prices = (businessClass.length > 0 ? businessClass : flightOffers)
+          .slice(0, 3)
+          .map((f: any) => `${f.price?.total} ${f.price?.currency}`);
+        realDataContext += `\n\n✈️ PREMIUM FLIGHT OPTIONS (Amadeus):\n- Business/First class from NYC: ${prices.join(', ')}\n- ${flightOffers.length} flight options available`;
       }
       
       if (hotelOffers && hotelOffers.length > 0) {
-        const hotelPrices = hotelOffers
+        const sortedHotels = hotelOffers.sort((a: any, b: any) => {
+          const priceA = parseFloat(a.offers?.[0]?.price?.total || '0');
+          const priceB = parseFloat(b.offers?.[0]?.price?.total || '0');
+          return priceB - priceA; // Highest price first
+        });
+        
+        const hotelPrices = sortedHotels
           .slice(0, 3)
           .map((h: any) => h.offers?.[0]?.price?.total)
           .filter((p: any) => p)
           .map((p: any) => `${p} ${hotelOffers[0].offers?.[0]?.price?.currency}`);
         
-        realDataContext += `\n\n🏨 REAL HOTEL DATA (Amadeus):\n- Sample nightly rates: ${hotelPrices.join(', ')}\n- ${hotelOffers.length} hotels available`;
+        realDataContext += `\n\n🏨 LUXURY HOTEL OPTIONS (Amadeus):\n- Premium properties: ${hotelPrices.join(', ')}/night\n- 5-star and boutique hotels prioritized`;
       }
     }
   }
   
-  const prompt = `Research ${trip.destination} for this trip profile:
+  const prompt = `Research ${trip.destination} for a LUXURY travel experience:
 
 ${intentAnalysis}
 
-Budget: ${trip.budget_tier}
+Budget: HIGH - Luxury tier
 Travel Style: ${trip.travel_style}
 ${realDataContext}
 
-Provide:
-1. Top 3-5 must-visit locations/districts in ${trip.destination}
-2. Best time considerations (if dates are flexible)
-3. Budget-specific tips for ${trip.budget_tier} tier (incorporate real pricing data above)
-4. Cultural insights and local customs
-5. Transportation recommendations
+Provide PREMIUM-focused information:
+1. Top 5 exclusive/luxury locations in ${trip.destination} (Michelin restaurants, 5-star hotels, VIP experiences)
+2. Private transportation options (chauffeur services, helicopter transfers, yacht charters)
+3. Exclusive access opportunities (private museum tours, celebrity chef experiences, member's clubs)
+4. Concierge services and luxury amenities
+5. High-end shopping and dining districts
 
-Keep response focused and actionable (300 words max).`;
+Keep response focused on premium experiences (300 words max).`;
 
-  const systemPrompt = "You are an expert destination researcher with access to real-time pricing data. Provide practical, insider information with actual cost estimates.";
+  const systemPrompt = "You are a luxury travel concierge with access to premium pricing data. Focus exclusively on high-end experiences, five-star properties, and VIP services.";
   
   return await callLovableAI([{ role: "user", content: prompt }], systemPrompt);
 }
 
-async function agent3_ActivityCurator(trip: TripData, intentAnalysis: string, destinationResearch: string): Promise<string> {
-  console.log("🤖 Agent 3: Activity Curator - Curating activities with real hotel data");
+async function agent2_StandardResearcher(trip: TripData, intentAnalysis: string): Promise<string> {
+  console.log("🤖 Agent 2 [STANDARD BRANCH]: Value-focused Destination Researcher");
   
-  let styleGuidance = "";
+  let realDataContext = '';
   
-  switch (trip.travel_style) {
-    case "adventure":
-      styleGuidance = "Focus on outdoor activities, hiking, water sports, adventure tours, and physically engaging experiences.";
-      break;
-    case "relaxation":
-      styleGuidance = "Prioritize spas, beaches, scenic views, leisurely walks, and low-intensity activities.";
-      break;
-    case "cultural":
-      styleGuidance = "Emphasize museums, historical sites, local markets, cultural performances, and heritage experiences.";
-      break;
-    case "nightlife":
-      styleGuidance = "Highlight bars, clubs, live music venues, evening entertainment, and late-night dining.";
-      break;
+  if (trip.start_date && trip.end_date) {
+    const cityCode = await getCityCode(trip.destination);
+    
+    if (cityCode) {
+      console.log(`Found city code: ${cityCode} for ${trip.destination}`);
+      
+      const flightOffers = await getFlightOffers('NYC', cityCode, trip.start_date, trip.group_size);
+      const hotelOffers = await getHotelOffers(cityCode, trip.start_date, trip.end_date);
+      
+      if (flightOffers && flightOffers.length > 0) {
+        const economyFlights = flightOffers.sort((a: any, b: any) => 
+          parseFloat(a.price?.total || '9999') - parseFloat(b.price?.total || '9999')
+        );
+        const prices = economyFlights.slice(0, 3).map((f: any) => `${f.price?.total} ${f.price?.currency}`);
+        realDataContext += `\n\n📊 BEST VALUE FLIGHTS (Amadeus):\n- Economy prices from NYC: ${prices.join(', ')}\n- ${flightOffers.length} options available`;
+      }
+      
+      if (hotelOffers && hotelOffers.length > 0) {
+        const affordableHotels = hotelOffers.sort((a: any, b: any) => {
+          const priceA = parseFloat(a.offers?.[0]?.price?.total || '9999');
+          const priceB = parseFloat(b.offers?.[0]?.price?.total || '9999');
+          return priceA - priceB; // Lowest price first
+        });
+        
+        const hotelPrices = affordableHotels
+          .slice(0, 3)
+          .map((h: any) => h.offers?.[0]?.price?.total)
+          .filter((p: any) => p)
+          .map((p: any) => `${p} ${hotelOffers[0].offers?.[0]?.price?.currency}`);
+        
+        realDataContext += `\n\n🏨 BEST VALUE HOTELS (Amadeus):\n- Budget-friendly rates: ${hotelPrices.join(', ')}/night\n- ${hotelOffers.length} properties with good reviews`;
+      }
+    }
   }
   
-  let budgetGuidance = "";
-  switch (trip.budget_tier) {
-    case "low":
-      budgetGuidance = "Focus on free/low-cost activities, street food, public transport, budget-friendly alternatives.";
-      break;
-    case "medium":
-      budgetGuidance = "Balance between popular paid attractions and affordable options. Mid-range dining and activities.";
-      break;
-    case "high":
-      budgetGuidance = "Include premium experiences, fine dining, private tours, luxury services, and exclusive access.";
-      break;
-  }
+  const prompt = `Research ${trip.destination} for VALUE-FOCUSED travel:
+
+${intentAnalysis}
+
+Budget: ${trip.budget_tier === 'low' ? 'LOW' : 'MEDIUM'} - Value-conscious
+Travel Style: ${trip.travel_style}
+${realDataContext}
+
+Provide BUDGET-SMART information:
+1. Top 3-5 must-see attractions (including FREE options)
+2. Public transportation tips and multi-day passes
+3. Budget accommodation areas (safe neighborhoods with good transit access)
+4. Local markets, affordable eateries, street food recommendations
+5. Money-saving tips and discount cards
+
+Keep response focused on maximizing value (300 words max).`;
+
+  const systemPrompt = "You are a savvy budget travel expert with access to real pricing data. Focus on value, free activities, and cost-saving strategies without compromising experience quality.";
+  
+  return await callLovableAI([{ role: "user", content: prompt }], systemPrompt);
+}
+
+// BRANCH 2: Travel Style-based Activity Curator
+async function agent3_ActiveCurator(trip: TripData, intentAnalysis: string, destinationResearch: string): Promise<string> {
+  console.log("🤖 Agent 3 [ACTIVE BRANCH]: Adventure & Cultural Activity Curator");
 
   let hotelRecommendations = '';
   
@@ -309,42 +354,99 @@ async function agent3_ActivityCurator(trip: TripData, intentAnalysis: string, de
       const hotelOffers = await getHotelOffers(cityCode, trip.start_date, trip.end_date);
       
       if (hotelOffers && hotelOffers.length > 0) {
-        hotelRecommendations = '\n\n🏨 REAL HOTEL OPTIONS (Amadeus):\n';
+        hotelRecommendations = '\n\n🏨 ACTIVE-TRAVELER HOTELS (Amadeus):\n';
         hotelOffers.slice(0, 5).forEach((hotel: any, idx: number) => {
           const offer = hotel.offers?.[0];
           if (offer) {
-            hotelRecommendations += `${idx + 1}. ${hotel.hotel?.name || 'Hotel'} - ${offer.price?.total} ${offer.price?.currency}/night\n`;
+            hotelRecommendations += `${idx + 1}. ${hotel.hotel?.name || 'Hotel'} - ${offer.price?.total} ${offer.price?.currency}/night (close to activities)\n`;
           }
         });
       }
     }
   }
 
-  const prompt = `Curate specific activities for ${trip.destination}:
+  const styleGuidance = trip.travel_style === 'adventure'
+    ? "ADVENTURE FOCUS: Outdoor activities, hiking trails, water sports (kayaking, surfing, diving), rock climbing, zip-lining, bike tours, extreme sports, wildlife encounters."
+    : "CULTURAL FOCUS: Museums, art galleries, historical sites, UNESCO heritage locations, local markets, cooking classes, cultural performances, architecture tours, artisan workshops.";
 
-Travel Style: ${trip.travel_style}
+  const prompt = `Curate ACTIVE experiences for ${trip.destination}:
+
 ${styleGuidance}
 
 Budget: ${trip.budget_tier}
-${budgetGuidance}
-
 Group Size: ${trip.group_size} people
 
 Destination Research:
 ${destinationResearch}
 ${hotelRecommendations}
 
-Provide:
-1. 8-12 specific activities/experiences matched to the travel style
-2. Estimated costs per activity (in USD)
-3. Time requirements for each
-4. Best times of day for each activity
-5. Group-friendly considerations
-6. Accommodation recommendations (use real hotel data above)
+Provide 10-15 ACTIVE activities:
+1. Physical activities & outdoor adventures (hiking, biking, water sports)
+2. Cultural immersion experiences (tours, classes, workshops)
+3. Morning activities (sunrise hikes, early market visits)
+4. Full-day excursions
+5. Estimated costs, duration, fitness level required
+6. Booking requirements and best seasons
+7. Group discounts available
 
-Format as a curated list with details. Max 400 words.`;
+Focus on ACTIVE, ENGAGING experiences. Max 400 words.`;
 
-  const systemPrompt = "You are an expert activity curator with access to real hotel pricing data. Create personalized travel experiences with accurate accommodation recommendations.";
+  const systemPrompt = "You are an adventure and cultural travel expert. Prioritize physically engaging and intellectually stimulating experiences. Include practical logistics and fitness requirements.";
+  
+  return await callLovableAI([{ role: "user", content: prompt }], systemPrompt);
+}
+
+async function agent3_LeisureCurator(trip: TripData, intentAnalysis: string, destinationResearch: string): Promise<string> {
+  console.log("🤖 Agent 3 [LEISURE BRANCH]: Relaxation & Nightlife Activity Curator");
+
+  let hotelRecommendations = '';
+  
+  if (trip.start_date && trip.end_date) {
+    const cityCode = await getCityCode(trip.destination);
+    
+    if (cityCode) {
+      const hotelOffers = await getHotelOffers(cityCode, trip.start_date, trip.end_date);
+      
+      if (hotelOffers && hotelOffers.length > 0) {
+        hotelRecommendations = '\n\n🏨 LEISURE-FOCUSED HOTELS (Amadeus):\n';
+        hotelOffers.slice(0, 5).forEach((hotel: any, idx: number) => {
+          const offer = hotel.offers?.[0];
+          if (offer) {
+            hotelRecommendations += `${idx + 1}. ${hotel.hotel?.name || 'Hotel'} - ${offer.price?.total} ${offer.price?.currency}/night (spa/beach access)\n`;
+          }
+        });
+      }
+    }
+  }
+
+  const styleGuidance = trip.travel_style === 'relaxation'
+    ? "RELAXATION FOCUS: Spa treatments, beach clubs, scenic viewpoints, sunset cruises, yoga retreats, thermal baths, meditation spots, leisurely garden walks, wine tastings."
+    : "NIGHTLIFE FOCUS: Rooftop bars, nightclubs, live music venues, jazz clubs, cocktail bars, late-night restaurants, sunset lounges, pub crawls, entertainment districts.";
+
+  const prompt = `Curate LEISURE experiences for ${trip.destination}:
+
+${styleGuidance}
+
+Budget: ${trip.budget_tier}
+Group Size: ${trip.group_size} people
+
+Destination Research:
+${destinationResearch}
+${hotelRecommendations}
+
+Provide 10-15 RELAXING/NIGHTLIFE activities:
+1. Spa & wellness experiences (massage, hot springs, wellness centers)
+2. Beach clubs & pool lounges
+3. Sunset viewing spots & romantic locations
+4. Evening entertainment (bars, clubs, live music)
+5. Late-night dining recommendations
+6. Low-intensity daytime activities
+7. Estimated costs, duration, dress codes
+8. Reservations needed and peak hours
+
+Focus on COMFORT and ENTERTAINMENT. Max 400 words.`;
+
+  const systemPrompt = "You are a relaxation and nightlife travel expert. Prioritize comfort, low physical exertion, and evening entertainment. Include ambiance descriptions and booking tips.";
   
   return await callLovableAI([{ role: "user", content: prompt }], systemPrompt);
 }
@@ -460,14 +562,30 @@ serve(async (req) => {
     const intentAnalysis = await agent1_IntentAnalyzer(trip);
     console.log("Intent analysis complete");
 
-    // Agent 2: Destination Researcher
+    // Agent 2: Destination Researcher (CONDITIONAL BRANCH 1 - Budget-based)
     await updateTripStatus(supabase, tripId, "researching_destination");
-    const destinationResearch = await agent2_DestinationResearcher(trip, intentAnalysis);
+    let destinationResearch: string;
+    
+    if (trip.budget_tier === 'high') {
+      console.log("🔀 BRANCH 1: Using Luxury Researcher (high budget)");
+      destinationResearch = await agent2_LuxuryResearcher(trip, intentAnalysis);
+    } else {
+      console.log("🔀 BRANCH 1: Using Standard Researcher (low/medium budget)");
+      destinationResearch = await agent2_StandardResearcher(trip, intentAnalysis);
+    }
     console.log("Destination research complete");
 
-    // Agent 3: Activity Curator (with conditional branching)
+    // Agent 3: Activity Curator (CONDITIONAL BRANCH 2 - Travel Style-based)
     await updateTripStatus(supabase, tripId, "curating_activities");
-    const curatedActivities = await agent3_ActivityCurator(trip, intentAnalysis, destinationResearch);
+    let curatedActivities: string;
+    
+    if (trip.travel_style === 'adventure' || trip.travel_style === 'cultural') {
+      console.log("🔀 BRANCH 2: Using Active Curator (adventure/cultural)");
+      curatedActivities = await agent3_ActiveCurator(trip, intentAnalysis, destinationResearch);
+    } else {
+      console.log("🔀 BRANCH 2: Using Leisure Curator (relaxation/nightlife)");
+      curatedActivities = await agent3_LeisureCurator(trip, intentAnalysis, destinationResearch);
+    }
     console.log("Activity curation complete");
 
     // Agent 4: Itinerary Generator

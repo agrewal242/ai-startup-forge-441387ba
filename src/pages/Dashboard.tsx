@@ -197,7 +197,10 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
       <nav className="border-b bg-card/50 backdrop-blur">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
+          <div 
+            className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" 
+            onClick={() => navigate("/")}
+          >
             <SmartTripLogo size={28} className="text-primary" />
             <h1 className="text-xl font-bold">SmartTrip AI</h1>
           </div>

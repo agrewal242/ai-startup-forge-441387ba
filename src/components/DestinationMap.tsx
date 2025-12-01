@@ -26,6 +26,7 @@ interface POI {
 
 interface DestinationMapProps {
   destination: string;
+  itinerary?: any;
 }
 
 const categoryColors: Record<string, string> = {
@@ -161,23 +162,41 @@ const LazyMap = ({ center, filteredPois, categoryColors, categoryIcons }: any) =
   );
 };
 
-export const DestinationMap = ({ destination }: DestinationMapProps) => {
+export const DestinationMap = ({ destination, itinerary }: DestinationMapProps) => {
   const [pois, setPois] = useState<POI[]>([]);
   const [loading, setLoading] = useState(true);
   const [center, setCenter] = useState<[number, number]>([48.8566, 2.3522]); // Default: Paris
   const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
+  // Extract first major city from itinerary
+  const getMapCity = () => {
+    // If itinerary has days with activities, try to find a specific city
+    if (itinerary?.days?.[0]?.activities?.[0]?.location) {
+      const firstLocation = itinerary.days[0].activities[0].location;
+      // Extract city name from location string (e.g., "Delhi" from "Old Delhi" or "New Delhi")
+      const cityMatch = firstLocation.match(/Delhi|Mumbai|Bangalore|Kolkata|Chennai|Hyderabad|Pune|Ahmedabad|Jaipur|Agra|Varanasi|Goa|Udaipur|Jodhpur|Paris|London|New York|Tokyo|Rome|Barcelona/i);
+      if (cityMatch) {
+        return cityMatch[0];
+      }
+      // Return first word of location as fallback
+      return firstLocation.split(',')[0].trim();
+    }
+    return destination;
+  };
+
+  const mapCity = getMapCity();
+
   useEffect(() => {
     fetchPOIs();
-  }, [destination]);
+  }, [mapCity]);
 
   const fetchPOIs = async () => {
     try {
       setLoading(true);
       
       const { data, error } = await supabase.functions.invoke('get-pois', {
-        body: { destination }
+        body: { destination: mapCity }
       });
 
       if (error) throw error;
@@ -192,7 +211,7 @@ export const DestinationMap = ({ destination }: DestinationMapProps) => {
       } else {
         toast({
           title: "No attractions found",
-          description: `We couldn't find any points of interest for ${destination}.`,
+          description: `We couldn't find any points of interest for ${mapCity}.`,
           variant: "destructive"
         });
       }
@@ -227,7 +246,7 @@ export const DestinationMap = ({ destination }: DestinationMapProps) => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Explore {destination}</CardTitle>
+          <CardTitle>Explore {mapCity}</CardTitle>
           <CardDescription>Discovering nearby attractions...</CardDescription>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-12">
@@ -241,7 +260,7 @@ export const DestinationMap = ({ destination }: DestinationMapProps) => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Explore {destination}</CardTitle>
+          <CardTitle>Explore {mapCity}</CardTitle>
           <CardDescription>No attractions found</CardDescription>
         </CardHeader>
       </Card>
@@ -253,7 +272,7 @@ export const DestinationMap = ({ destination }: DestinationMapProps) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <MapPin className="h-5 w-5" />
-          Explore {destination}
+          Explore {mapCity}
         </CardTitle>
         <CardDescription>
           {pois.length} attractions nearby • Filter by category

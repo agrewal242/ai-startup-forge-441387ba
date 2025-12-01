@@ -55,9 +55,14 @@ const Index = () => {
           <p className="text-xl text-muted-foreground">
             Let our intelligent agents create personalized itineraries based on your preferences, budget, and travel style
           </p>
-          <Button size="lg" className="mt-8">
-            Start Planning
-          </Button>
+          <div className="flex gap-4 justify-center mt-8">
+            <Button size="lg" onClick={() => navigate("/plan-trip")}>
+              Start Planning
+            </Button>
+            <Button size="lg" variant="outline" onClick={() => navigate("/dashboard")}>
+              View My Trips
+            </Button>
+          </div>
         </div>
       </main>
     </div>

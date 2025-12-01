@@ -4,10 +4,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plane, LogOut, Plus, Calendar, Users, DollarSign, Sparkles, Loader2 } from "lucide-react";
+import { Plane, LogOut, Plus, Calendar, Users, DollarSign, Sparkles, Loader2, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { format } from "date-fns";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type Trip = {
   id: string;
@@ -156,6 +167,31 @@ const Dashboard = () => {
     return ["analyzing_intent", "researching_destination", "curating_activities", "generating_itinerary"].includes(status);
   };
 
+  const handleDeleteTrip = async (tripId: string, destination: string) => {
+    try {
+      const { error } = await supabase
+        .from("trips")
+        .delete()
+        .eq("id", tripId);
+
+      if (error) throw error;
+
+      // Update local state
+      setTrips(prev => prev.filter(trip => trip.id !== tripId));
+
+      toast({
+        title: "Trip deleted",
+        description: `${destination} trip has been removed.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
       <nav className="border-b bg-card/50 backdrop-blur">
@@ -255,14 +291,46 @@ const Dashboard = () => {
                     </div>
                   )}
                   
-                  <Button 
-                    className="w-full mt-4" 
-                    variant={trip.status === "completed" ? "default" : "outline"}
-                    disabled={isProcessing(trip.status)}
-                    onClick={() => navigate(`/trip/${trip.id}`)}
-                  >
-                    {trip.status === "completed" ? "View Itinerary" : "View Details"}
-                  </Button>
+                  <div className="flex gap-2 mt-4">
+                    <Button 
+                      className="flex-1" 
+                      variant={trip.status === "completed" ? "default" : "outline"}
+                      disabled={isProcessing(trip.status)}
+                      onClick={() => navigate(`/trip/${trip.id}`)}
+                    >
+                      {trip.status === "completed" ? "View Itinerary" : "View Details"}
+                    </Button>
+                    
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="destructive" 
+                          size="icon"
+                          disabled={isProcessing(trip.status)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Trip?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete your trip to <strong>{trip.destination}</strong>? 
+                            This action cannot be undone and will permanently remove the itinerary.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeleteTrip(trip.id, trip.destination)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </CardContent>
               </Card>
             ))}

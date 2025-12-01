@@ -535,8 +535,20 @@ serve(async (req) => {
   try {
     const { tripId } = await req.json();
     
+    // Validate tripId format
     if (!tripId) {
       throw new Error("Trip ID is required");
+    }
+    
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(tripId)) {
+      throw new Error("Invalid trip ID format");
+    }
+
+    // Get authenticated user from JWT
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error("Authorization header required");
     }
 
     console.log(`Starting AI workflow for trip: ${tripId}`);
@@ -545,6 +557,14 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Verify user owns the trip
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      throw new Error("Invalid or expired token");
+    }
 
     // Fetch trip details
     const { data: trip, error: fetchError } = await supabase
@@ -555,6 +575,11 @@ serve(async (req) => {
 
     if (fetchError || !trip) {
       throw new Error("Trip not found");
+    }
+
+    // Verify ownership
+    if (trip.user_id !== user.id) {
+      throw new Error("Unauthorized: You don't own this trip");
     }
 
     // Agent 1: Intent Analyzer

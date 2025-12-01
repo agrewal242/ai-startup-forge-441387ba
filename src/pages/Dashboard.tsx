@@ -19,6 +19,7 @@ type Trip = {
   group_size: number;
   status: string;
   created_at: string;
+  itinerary: any;
 };
 
 const Dashboard = () => {
@@ -245,10 +246,20 @@ const Dashboard = () => {
                     <Sparkles className="h-4 w-4 text-muted-foreground" />
                     <span className="capitalize">{trip.travel_style.replace("_", " ")}</span>
                   </div>
+                  
+                  {trip.status === "completed" && trip.itinerary?.summary && (
+                    <div className="mt-4 p-3 bg-muted/50 rounded-md">
+                      <p className="text-xs text-muted-foreground line-clamp-2">
+                        {trip.itinerary.summary}
+                      </p>
+                    </div>
+                  )}
+                  
                   <Button 
                     className="w-full mt-4" 
                     variant={trip.status === "completed" ? "default" : "outline"}
                     disabled={isProcessing(trip.status)}
+                    onClick={() => navigate(`/trip/${trip.id}`)}
                   >
                     {trip.status === "completed" ? "View Itinerary" : "View Details"}
                   </Button>

@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format } from "date-fns";
-import { CalendarIcon, Plane, ArrowLeft } from "lucide-react";
+import { CalendarIcon, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { SmartTripLogo } from "@/components/SmartTripLogo";
 
 const formSchema = z.object({
   destination: z.string().min(2, "Destination must be at least 2 characters"),
@@ -102,7 +103,7 @@ const PlanTrip = () => {
             Back
           </Button>
           <div className="flex items-center gap-2">
-            <Plane className="h-6 w-6 text-primary" />
+            <SmartTripLogo size={28} className="text-primary" />
             <h1 className="text-xl font-bold">SmartTrip AI</h1>
           </div>
         </div>

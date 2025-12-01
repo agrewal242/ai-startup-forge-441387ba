@@ -9,7 +9,6 @@ import { ArrowLeft, Calendar, DollarSign, MapPin, Clock, Users, Plane } from "lu
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { AgentProgressTracker } from "@/components/AgentProgressTracker";
-import { DestinationMap } from "@/components/DestinationMap";
 
 type Trip = {
   id: string;
@@ -331,14 +330,6 @@ const TripItinerary = () => {
             ))}
           </div>
         )}
-
-        {/* Interactive Map */}
-        <div className="mb-8">
-          <DestinationMap 
-            destination={trip.destination}
-            itinerary={itinerary}
-          />
-        </div>
 
         {/* Travel Tips */}
         {itinerary.tips && itinerary.tips.length > 0 && (

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Plane, LogOut, Brain, Database, Sparkles, TrendingUp, MapPin, Globe2 } from "lucide-react";
+import GlobeMap from "@/components/GlobeMap";
 
 const Index = () => {
   const [user, setUser] = useState<any>(null);
@@ -85,66 +86,14 @@ const Index = () => {
           </div>
         </div>
 
-        {/* How It Works - AI Agents */}
+        {/* Interactive Globe Map */}
         <div className="max-w-6xl mx-auto mb-20">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">How Our AI Agents Work</h2>
-            <p className="text-lg text-muted-foreground">Four specialized agents collaborate to create your perfect itinerary</p>
+            <h2 className="text-4xl font-bold mb-4">Explore the World</h2>
+            <p className="text-lg text-muted-foreground">Discover destinations across the globe with our interactive map</p>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card className="p-6 hover:shadow-lg transition-all border-2 hover:border-primary/50">
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-lg bg-primary/10">
-                  <Brain className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-2">Agent 1: Intent Analyzer</h3>
-                  <p className="text-muted-foreground">Analyzes your preferences, budget, and travel style to understand your travel motivations and priorities</p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-6 hover:shadow-lg transition-all border-2 hover:border-primary/50">
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-lg bg-secondary/10">
-                  <Database className="h-6 w-6 text-secondary" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-2">Agent 2: Destination Researcher</h3>
-                  <p className="text-muted-foreground">
-                    <strong>Smart branching:</strong> Uses Amadeus API to fetch <em>real</em> flight & hotel prices. Switches between <strong>Luxury</strong> or <strong>Value</strong> researcher based on your budget
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-6 hover:shadow-lg transition-all border-2 hover:border-primary/50">
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-lg bg-accent/10">
-                  <MapPin className="h-6 w-6 text-accent-foreground" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-2">Agent 3: Activity Curator</h3>
-                  <p className="text-muted-foreground">
-                    <strong>Smart branching:</strong> Routes to <strong>Active</strong> curator (adventure/cultural) or <strong>Leisure</strong> curator (relaxation/nightlife) based on your travel style
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-6 hover:shadow-lg transition-all border-2 hover:border-primary/50">
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-lg bg-primary/10">
-                  <Sparkles className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-2">Agent 4: Itinerary Generator</h3>
-                  <p className="text-muted-foreground">Synthesizes all research into a detailed day-by-day itinerary with timings, costs, and pro tips</p>
-                </div>
-              </div>
-            </Card>
-          </div>
+          <GlobeMap />
         </div>
 
         {/* Features Section */}

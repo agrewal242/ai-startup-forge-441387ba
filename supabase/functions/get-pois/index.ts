@@ -90,10 +90,21 @@ serve(async (req) => {
   }
 
   try {
+    // Validate authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Authorization required');
+    }
+
     const { destination } = await req.json();
     
     if (!destination) {
       throw new Error('Destination is required');
+    }
+
+    // Validate destination format and length
+    if (typeof destination !== 'string' || destination.length > 200 || destination.length < 1) {
+      throw new Error('Invalid destination format');
     }
 
     const apiKey = Deno.env.get('OPENTRIPMAP_API_KEY');

@@ -129,7 +129,26 @@ serve(async (req) => {
       throw new Error(`POI fetch failed: ${radiusResponse.statusText} - ${errorText}`);
     }
 
-    const pois: POI[] = await radiusResponse.json();
+    const poisData = await radiusResponse.json();
+    console.log(`POI API response type:`, typeof poisData, `Is array:`, Array.isArray(poisData));
+    
+    // OpenTripMap returns an object with 'features' array, not a direct array
+    let pois: POI[] = [];
+    
+    if (Array.isArray(poisData)) {
+      pois = poisData;
+    } else if (poisData && typeof poisData === 'object' && 'features' in poisData) {
+      // Handle GeoJSON format with features array
+      pois = poisData.features || [];
+    } else if (poisData && typeof poisData === 'object') {
+      // API might return error object
+      console.error(`Unexpected POI response format:`, poisData);
+      return new Response(
+        JSON.stringify({ destination, center: { lat, lon }, pois: [] }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     console.log(`Found ${pois.length} POIs`);
 
     // Step 3: Get detailed info for top 20 POIs (to avoid rate limits)

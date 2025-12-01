@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import { Icon, LatLngExpression } from "leaflet";
-import "leaflet/dist/leaflet.css";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, MapPin, ExternalLink } from "lucide-react";
 import { POIFilterBar } from "./POIFilterBar";
 import { useToast } from "@/hooks/use-toast";
+import { MapWrapper } from "./MapWrapper";
+
+// Dynamic imports for Leaflet to avoid SSR issues
+import type { Icon, LatLngExpression } from "leaflet";
 
 interface POI {
   xid: string;
@@ -45,13 +46,119 @@ const categoryIcons: Record<string, string> = {
   other: "📍"
 };
 
-// Component to recenter map when center changes
-const RecenterMap = ({ center }: { center: LatLngExpression }) => {
-  const map = useMap();
+// Lazy load map components
+const LazyMap = ({ center, filteredPois, categoryColors, categoryIcons }: any) => {
+  const [mapComponents, setMapComponents] = useState<any>(null);
+
   useEffect(() => {
-    map.setView(center, 12);
-  }, [center, map]);
-  return null;
+    import("react-leaflet").then((module) => {
+      import("leaflet").then((leafletModule) => {
+        import("leaflet/dist/leaflet.css");
+        setMapComponents({ 
+          MapContainer: module.MapContainer,
+          TileLayer: module.TileLayer,
+          Marker: module.Marker,
+          Popup: module.Popup,
+          useMap: module.useMap,
+          Icon: leafletModule.Icon
+        });
+      });
+    });
+  }, []);
+
+  if (!mapComponents) {
+    return (
+      <div className="flex items-center justify-center h-[500px] border rounded-lg bg-muted/50">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const { MapContainer, TileLayer, Marker, Popup, useMap, Icon } = mapComponents;
+
+  // Component to recenter map when center changes
+  const RecenterMap = ({ center }: { center: LatLngExpression }) => {
+    const map = useMap();
+    useEffect(() => {
+      map.setView(center, 12);
+    }, [center, map]);
+    return null;
+  };
+
+  return (
+    <MapContainer
+      center={center}
+      zoom={12}
+      style={{ height: "100%", width: "100%" }}
+      scrollWheelZoom={true}
+    >
+      <RecenterMap center={center} />
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      {filteredPois.map((poi: any) => {
+        const icon = new Icon({
+          iconUrl: `data:image/svg+xml;utf8,${encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+              <circle cx="16" cy="16" r="14" fill="${categoryColors[poi.category]}" stroke="white" stroke-width="2"/>
+              <text x="16" y="21" text-anchor="middle" font-size="16">${categoryIcons[poi.category] || "📍"}</text>
+            </svg>
+          `)}`,
+          iconSize: [32, 32],
+          iconAnchor: [16, 32],
+          popupAnchor: [0, -32]
+        });
+
+        return (
+          <Marker
+            key={poi.xid}
+            position={[poi.lat, poi.lon]}
+            icon={icon}
+          >
+            <Popup maxWidth={300}>
+              <div className="space-y-2 p-2">
+                {poi.image && (
+                  <img
+                    src={poi.image}
+                    alt={poi.name}
+                    className="w-full h-32 object-cover rounded"
+                  />
+                )}
+                <div>
+                  <h3 className="font-semibold text-base">{poi.name}</h3>
+                  <Badge variant="secondary" className="mt-1">
+                    {categoryIcons[poi.category]} {poi.category}
+                  </Badge>
+                </div>
+                {poi.address && (
+                  <p className="text-sm text-muted-foreground">{poi.address}</p>
+                )}
+                {poi.description && (
+                  <p className="text-sm line-clamp-3">{poi.description}</p>
+                )}
+                {poi.distance > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    📍 {(poi.distance / 1000).toFixed(1)} km from center
+                  </p>
+                )}
+                {poi.wikipedia && (
+                  <a
+                    href={poi.wikipedia}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-primary hover:underline flex items-center gap-1"
+                  >
+                    Learn more <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
+              </div>
+            </Popup>
+          </Marker>
+        );
+      })}
+    </MapContainer>
+  );
 };
 
 export const DestinationMap = ({ destination }: DestinationMapProps) => {
@@ -160,78 +267,14 @@ export const DestinationMap = ({ destination }: DestinationMapProps) => {
         />
 
         <div className="rounded-lg overflow-hidden border" style={{ height: "500px" }}>
-          <MapContainer
-            center={center}
-            zoom={12}
-            style={{ height: "100%", width: "100%" }}
-            scrollWheelZoom={true}
-          >
-            <RecenterMap center={center} />
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          <MapWrapper>
+            <LazyMap
+              center={center}
+              filteredPois={filteredPois}
+              categoryColors={categoryColors}
+              categoryIcons={categoryIcons}
             />
-            {filteredPois.map((poi) => {
-              const icon = new Icon({
-                iconUrl: `data:image/svg+xml;utf8,${encodeURIComponent(`
-                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-                    <circle cx="16" cy="16" r="14" fill="${categoryColors[poi.category]}" stroke="white" stroke-width="2"/>
-                    <text x="16" y="21" text-anchor="middle" font-size="16">${categoryIcons[poi.category] || "📍"}</text>
-                  </svg>
-                `)}`,
-                iconSize: [32, 32],
-                iconAnchor: [16, 32],
-                popupAnchor: [0, -32]
-              });
-
-              return (
-                <Marker
-                  key={poi.xid}
-                  position={[poi.lat, poi.lon]}
-                  icon={icon}
-                >
-                  <Popup maxWidth={300}>
-                    <div className="space-y-2 p-2">
-                      {poi.image && (
-                        <img
-                          src={poi.image}
-                          alt={poi.name}
-                          className="w-full h-32 object-cover rounded"
-                        />
-                      )}
-                      <div>
-                        <h3 className="font-semibold text-base">{poi.name}</h3>
-                        <Badge variant="secondary" className="mt-1">
-                          {categoryIcons[poi.category]} {poi.category}
-                        </Badge>
-                      </div>
-                      {poi.address && (
-                        <p className="text-sm text-muted-foreground">{poi.address}</p>
-                      )}
-                      {poi.description && (
-                        <p className="text-sm line-clamp-3">{poi.description}</p>
-                      )}
-                      {poi.distance > 0 && (
-                        <p className="text-xs text-muted-foreground">
-                          📍 {(poi.distance / 1000).toFixed(1)} km from center
-                        </p>
-                      )}
-                      {poi.wikipedia && (
-                        <a
-                          href={poi.wikipedia}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-primary hover:underline flex items-center gap-1"
-                        >
-                          Learn more <ExternalLink className="h-3 w-3" />
-                        </a>
-                      )}
-                    </div>
-                  </Popup>
-                </Marker>
-              );
-            })}
-          </MapContainer>
+          </MapWrapper>
         </div>
 
         <div className="space-y-2">

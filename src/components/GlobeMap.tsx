@@ -104,6 +104,33 @@ const allDestinations = [
     bestTime: 'Jul-Aug',
     description: 'Historic Scottish capital with dramatic castle views'
   },
+  { 
+    name: 'Moscow', 
+    lat: 55.7558, 
+    lon: 37.6173,
+    continent: 'Europe',
+    highlights: 'Red Square, Kremlin, St. Basil\'s Cathedral',
+    bestTime: 'May-Sep',
+    description: 'Russian capital with iconic onion-domed architecture'
+  },
+  { 
+    name: 'St. Petersburg', 
+    lat: 59.9343, 
+    lon: 30.3351,
+    continent: 'Europe',
+    highlights: 'Hermitage Museum, Peterhof Palace, Canals',
+    bestTime: 'May-Sep',
+    description: 'Imperial city known as the Venice of the North'
+  },
+  { 
+    name: 'Lake Baikal', 
+    lat: 53.5587, 
+    lon: 108.1650,
+    continent: 'Asia',
+    highlights: 'Deepest Lake, Ice Formations, Trans-Siberian Railway',
+    bestTime: 'Jun-Sep, Feb-Mar',
+    description: 'World\'s deepest and oldest freshwater lake in Siberia'
+  },
   
   // Asia
   { 

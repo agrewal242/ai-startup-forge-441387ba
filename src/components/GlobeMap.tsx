@@ -1,155 +1,121 @@
-import { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useEffect, useRef } from 'react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Popular travel destinations
+const destinations = [
+  { name: 'Paris', lat: 48.8566, lon: 2.3522 },
+  { name: 'Tokyo', lat: 35.6762, lon: 139.6503 },
+  { name: 'New York', lat: 40.7128, lon: -74.0060 },
+  { name: 'London', lat: 51.5074, lon: -0.1278 },
+  { name: 'Dubai', lat: 25.2048, lon: 55.2708 },
+  { name: 'Sydney', lat: -33.8688, lon: 151.2093 },
+  { name: 'Rome', lat: 41.9028, lon: 12.4964 },
+  { name: 'Barcelona', lat: 41.3851, lon: 2.1734 },
+  { name: 'Bangkok', lat: 13.7563, lon: 100.5018 },
+  { name: 'Singapore', lat: 1.3521, lon: 103.8198 },
+];
 
 const GlobeMap = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const [mapboxToken, setMapboxToken] = useState('');
-  const [tokenEntered, setTokenEntered] = useState(false);
+  const map = useRef<L.Map | null>(null);
 
   useEffect(() => {
-    if (!mapContainer.current || !tokenEntered || !mapboxToken) return;
+    if (!mapContainer.current || map.current) return;
 
-    // Initialize map
-    mapboxgl.accessToken = mapboxToken;
-    
-    try {
-      map.current = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/light-v11',
-        projection: 'globe' as any,
-        zoom: 1.5,
-        center: [30, 15],
-        pitch: 45,
-      });
+    // Initialize map with world view
+    map.current = L.map(mapContainer.current, {
+      center: [20, 0],
+      zoom: 2,
+      minZoom: 2,
+      maxZoom: 5,
+      zoomControl: true,
+      scrollWheelZoom: true,
+    });
 
-      // Add navigation controls
-      map.current.addControl(
-        new mapboxgl.NavigationControl({
-          visualizePitch: true,
-        }),
-        'top-right'
-      );
+    // Add tile layer - using CartoDB Positron for clean look
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap contributors © CARTO',
+      subdomains: 'abcd',
+      maxZoom: 19,
+    }).addTo(map.current);
 
-      // Disable scroll zoom for smoother experience
-      map.current.scrollZoom.disable();
+    // Custom icon for destination markers
+    const destinationIcon = L.divIcon({
+      className: 'custom-marker',
+      html: `
+        <div style="
+          width: 24px;
+          height: 24px;
+          background: hsl(var(--primary));
+          border: 3px solid white;
+          border-radius: 50%;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          position: relative;
+        ">
+          <div style="
+            width: 40px;
+            height: 40px;
+            background: hsl(var(--primary) / 0.2);
+            border-radius: 50%;
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            animation: pulse 2s ease-in-out infinite;
+          "></div>
+        </div>
+      `,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+    });
 
-      // Add atmosphere and fog effects
-      map.current.on('style.load', () => {
-        map.current?.setFog({
-          color: 'rgb(255, 255, 255)',
-          'high-color': 'rgb(200, 200, 225)',
-          'horizon-blend': 0.2,
-        });
-      });
+    // Add destination markers
+    destinations.forEach((dest) => {
+      const marker = L.marker([dest.lat, dest.lon], { icon: destinationIcon })
+        .addTo(map.current!);
+      
+      marker.bindPopup(`
+        <div style="text-align: center; padding: 4px;">
+          <strong style="font-size: 16px; color: hsl(var(--primary));">${dest.name}</strong>
+          <p style="margin: 4px 0 0 0; font-size: 12px; color: hsl(var(--muted-foreground));">
+            Popular destination
+          </p>
+        </div>
+      `);
+    });
 
-      // Rotation animation settings
-      const secondsPerRevolution = 240;
-      const maxSpinZoom = 5;
-      const slowSpinZoom = 3;
-      let userInteracting = false;
-      let spinEnabled = true;
-
-      // Spin globe function
-      function spinGlobe() {
-        if (!map.current) return;
-        
-        const zoom = map.current.getZoom();
-        if (spinEnabled && !userInteracting && zoom < maxSpinZoom) {
-          let distancePerSecond = 360 / secondsPerRevolution;
-          if (zoom > slowSpinZoom) {
-            const zoomDif = (maxSpinZoom - zoom) / (maxSpinZoom - slowSpinZoom);
-            distancePerSecond *= zoomDif;
-          }
-          const center = map.current.getCenter();
-          center.lng -= distancePerSecond;
-          map.current.easeTo({ center, duration: 1000, easing: (n) => n });
-        }
+    // Add CSS animation for pulse effect
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.6; }
+        50% { transform: scale(1.5); opacity: 0; }
       }
-
-      // Event listeners for interaction
-      map.current.on('mousedown', () => {
-        userInteracting = true;
-      });
-      
-      map.current.on('dragstart', () => {
-        userInteracting = true;
-      });
-      
-      map.current.on('mouseup', () => {
-        userInteracting = false;
-        spinGlobe();
-      });
-      
-      map.current.on('touchend', () => {
-        userInteracting = false;
-        spinGlobe();
-      });
-
-      map.current.on('moveend', () => {
-        spinGlobe();
-      });
-
-      // Start the globe spinning
-      spinGlobe();
-    } catch (error) {
-      console.error('Error initializing map:', error);
-    }
+      .leaflet-popup-content-wrapper {
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      }
+      .leaflet-popup-tip {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+    `;
+    document.head.appendChild(style);
 
     // Cleanup
     return () => {
       map.current?.remove();
+      document.head.removeChild(style);
     };
-  }, [tokenEntered, mapboxToken]);
-
-  if (!tokenEntered) {
-    return (
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle>Enter Mapbox Token</CardTitle>
-          <CardDescription>
-            Get your free public token from{' '}
-            <a 
-              href="https://account.mapbox.com/access-tokens/" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-primary hover:underline"
-            >
-              mapbox.com
-            </a>
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="mapbox-token">Mapbox Public Token</Label>
-            <Input
-              id="mapbox-token"
-              type="text"
-              placeholder="pk.eyJ1IjoiZXhhbXBsZSIsImEiOiJjbHN4eXoifQ..."
-              value={mapboxToken}
-              onChange={(e) => setMapboxToken(e.target.value)}
-            />
-          </div>
-          <button
-            onClick={() => setTokenEntered(true)}
-            disabled={!mapboxToken}
-            className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Load Map
-          </button>
-        </CardContent>
-      </Card>
-    );
-  }
+  }, []);
 
   return (
-    <div className="relative w-full h-[600px] rounded-xl overflow-hidden shadow-2xl">
+    <div className="relative w-full h-[600px] rounded-xl overflow-hidden shadow-2xl border-2 border-border">
       <div ref={mapContainer} className="absolute inset-0" />
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent to-background/10" />
+      <div className="absolute bottom-4 left-4 bg-card/95 backdrop-blur px-4 py-2 rounded-lg shadow-lg border">
+        <p className="text-sm text-muted-foreground">
+          <span className="font-semibold text-foreground">Click markers</span> to explore destinations
+        </p>
+      </div>
     </div>
   );
 };

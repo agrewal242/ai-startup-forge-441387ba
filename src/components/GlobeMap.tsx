@@ -50,6 +50,60 @@ const allDestinations = [
     bestTime: 'Apr-May, Sep-Nov',
     description: 'Charming canal city known for art and cycling culture'
   },
+  { 
+    name: 'Vienna', 
+    lat: 48.2082, 
+    lon: 16.3738,
+    continent: 'Europe',
+    highlights: 'Schönbrunn Palace, Opera House, Belvedere',
+    bestTime: 'Apr-May, Sep-Oct',
+    description: 'Imperial capital renowned for classical music and coffee houses'
+  },
+  { 
+    name: 'Prague', 
+    lat: 50.0755, 
+    lon: 14.4378,
+    continent: 'Europe',
+    highlights: 'Charles Bridge, Prague Castle, Old Town Square',
+    bestTime: 'May-Jun, Sep',
+    description: 'Fairy-tale city with Gothic and Baroque architecture'
+  },
+  { 
+    name: 'Santorini', 
+    lat: 36.3932, 
+    lon: 25.4615,
+    continent: 'Europe',
+    highlights: 'White-washed buildings, Sunsets, Volcanic beaches',
+    bestTime: 'Apr-Nov',
+    description: 'Greek island paradise famous for stunning sunsets'
+  },
+  { 
+    name: 'Dubrovnik', 
+    lat: 42.6507, 
+    lon: 18.0944,
+    continent: 'Europe',
+    highlights: 'Old Town Walls, Cable Car, Game of Thrones locations',
+    bestTime: 'May-Jun, Sep-Oct',
+    description: 'Medieval walled city on the Adriatic coast'
+  },
+  { 
+    name: 'Copenhagen', 
+    lat: 55.6761, 
+    lon: 12.5683,
+    continent: 'Europe',
+    highlights: 'Tivoli Gardens, Nyhavn, Little Mermaid',
+    bestTime: 'May-Aug',
+    description: 'Danish capital known for design and hygge lifestyle'
+  },
+  { 
+    name: 'Edinburgh', 
+    lat: 55.9533, 
+    lon: -3.1883,
+    continent: 'Europe',
+    highlights: 'Edinburgh Castle, Royal Mile, Arthur\'s Seat',
+    bestTime: 'Jul-Aug',
+    description: 'Historic Scottish capital with dramatic castle views'
+  },
   
   // Asia
   { 
@@ -106,6 +160,51 @@ const allDestinations = [
     bestTime: 'Apr-May, Sep-Nov',
     description: 'Historic crossroads of Europe and Asia'
   },
+  { 
+    name: 'Kyoto', 
+    lat: 35.0116, 
+    lon: 135.7681,
+    continent: 'Asia',
+    highlights: 'Bamboo Forest, Golden Pavilion, Geisha Districts',
+    bestTime: 'Mar-May, Oct-Nov',
+    description: 'Ancient Japanese capital with thousands of temples'
+  },
+  { 
+    name: 'Seoul', 
+    lat: 37.5665, 
+    lon: 126.9780,
+    continent: 'Asia',
+    highlights: 'Gyeongbokgung Palace, N Seoul Tower, Myeongdong',
+    bestTime: 'Mar-May, Sep-Nov',
+    description: 'Dynamic Korean capital blending tradition and K-pop culture'
+  },
+  { 
+    name: 'Hong Kong', 
+    lat: 22.3193, 
+    lon: 114.1694,
+    continent: 'Asia',
+    highlights: 'Victoria Peak, Star Ferry, Temple Street Market',
+    bestTime: 'Oct-Dec',
+    description: 'Vibrant harbor city with iconic skyline and dim sum'
+  },
+  { 
+    name: 'Maldives', 
+    lat: 3.2028, 
+    lon: 73.2207,
+    continent: 'Asia',
+    highlights: 'Overwater Bungalows, Coral Reefs, Blue Lagoons',
+    bestTime: 'Nov-Apr',
+    description: 'Tropical island nation with crystal-clear waters'
+  },
+  { 
+    name: 'Petra', 
+    lat: 30.3285, 
+    lon: 35.4444,
+    continent: 'Asia',
+    highlights: 'Treasury, Monastery, Ancient Nabataean City',
+    bestTime: 'Mar-May, Sep-Nov',
+    description: 'Rose-red ancient city carved into rock cliffs'
+  },
   
   // North America
   { 
@@ -144,6 +243,51 @@ const allDestinations = [
     bestTime: 'Jun-Aug',
     description: 'Stunning coastal city surrounded by mountains'
   },
+  { 
+    name: 'Los Angeles', 
+    lat: 34.0522, 
+    lon: -118.2437,
+    continent: 'North America',
+    highlights: 'Hollywood Sign, Santa Monica Pier, Getty Museum',
+    bestTime: 'Mar-May, Sep-Nov',
+    description: 'Entertainment capital with beaches and celebrity culture'
+  },
+  { 
+    name: 'Miami', 
+    lat: 25.7617, 
+    lon: -80.1918,
+    continent: 'North America',
+    highlights: 'South Beach, Art Deco District, Little Havana',
+    bestTime: 'Dec-May',
+    description: 'Vibrant coastal city with Latin flair and nightlife'
+  },
+  { 
+    name: 'Las Vegas', 
+    lat: 36.1699, 
+    lon: -115.1398,
+    continent: 'North America',
+    highlights: 'The Strip, Casinos, Grand Canyon nearby',
+    bestTime: 'Mar-May, Sep-Nov',
+    description: 'Entertainment oasis in the desert with 24/7 excitement'
+  },
+  { 
+    name: 'Toronto', 
+    lat: 43.6532, 
+    lon: -79.3832,
+    continent: 'North America',
+    highlights: 'CN Tower, Distillery District, Niagara Falls nearby',
+    bestTime: 'May-Sep',
+    description: 'Multicultural Canadian metropolis on Lake Ontario'
+  },
+  { 
+    name: 'Mexico City', 
+    lat: 19.4326, 
+    lon: -99.1332,
+    continent: 'North America',
+    highlights: 'Teotihuacan Pyramids, Frida Kahlo Museum, Zócalo',
+    bestTime: 'Mar-May',
+    description: 'Vibrant capital rich in Aztec heritage and modern culture'
+  },
   
   // South America
   { 
@@ -172,6 +316,33 @@ const allDestinations = [
     highlights: 'Inca Ruins, Sacred Valley, Huayna Picchu',
     bestTime: 'May-Sep',
     description: 'Ancient Incan citadel high in the Andes Mountains'
+  },
+  { 
+    name: 'Lima', 
+    lat: -12.0464, 
+    lon: -77.0428,
+    continent: 'South America',
+    highlights: 'Historic Center, Larco Museum, Pacific Cliffs',
+    bestTime: 'Dec-Mar',
+    description: 'Peruvian capital known for world-class cuisine'
+  },
+  { 
+    name: 'Cartagena', 
+    lat: 10.3910, 
+    lon: -75.4794,
+    continent: 'South America',
+    highlights: 'Walled City, Castillo San Felipe, Rosario Islands',
+    bestTime: 'Dec-Mar',
+    description: 'Colonial gem on Colombia\'s Caribbean coast'
+  },
+  { 
+    name: 'Patagonia', 
+    lat: -41.8102, 
+    lon: -68.9063,
+    continent: 'South America',
+    highlights: 'Glaciers, Torres del Paine, Perito Moreno',
+    bestTime: 'Nov-Mar',
+    description: 'Wild frontier with stunning glaciers and mountains'
   },
   
   // Africa
@@ -202,6 +373,33 @@ const allDestinations = [
     bestTime: 'Oct-Apr',
     description: 'Ancient capital home to the iconic pyramids'
   },
+  { 
+    name: 'Serengeti', 
+    lat: -2.3333, 
+    lon: 34.8333,
+    continent: 'Africa',
+    highlights: 'Great Migration, Safari, Big Five Wildlife',
+    bestTime: 'Jun-Oct',
+    description: 'Iconic savanna with world\'s greatest wildlife spectacle'
+  },
+  { 
+    name: 'Victoria Falls', 
+    lat: -17.9243, 
+    lon: 25.8572,
+    continent: 'Africa',
+    highlights: 'Waterfall, Devil\'s Pool, Zambezi River',
+    bestTime: 'Feb-May',
+    description: 'Spectacular waterfall on the Zambia-Zimbabwe border'
+  },
+  { 
+    name: 'Zanzibar', 
+    lat: -6.1659, 
+    lon: 39.2026,
+    continent: 'Africa',
+    highlights: 'Stone Town, Spice Tours, White Sand Beaches',
+    bestTime: 'Jun-Oct',
+    description: 'Tropical archipelago with rich Swahili heritage'
+  },
   
   // Oceania
   { 
@@ -231,6 +429,33 @@ const allDestinations = [
     bestTime: 'Jul-Sep',
     description: 'Tropical paradise with pristine beaches and coral reefs'
   },
+  { 
+    name: 'Melbourne', 
+    lat: -37.8136, 
+    lon: 144.9631,
+    continent: 'Oceania',
+    highlights: 'Street Art, Great Ocean Road, Federation Square',
+    bestTime: 'Mar-May, Sep-Nov',
+    description: 'Cultural capital known for coffee, arts, and sports'
+  },
+  { 
+    name: 'Queenstown', 
+    lat: -45.0312, 
+    lon: 168.6626,
+    continent: 'Oceania',
+    highlights: 'Milford Sound, Bungee Jumping, Remarkables Range',
+    bestTime: 'Dec-Feb',
+    description: 'Adventure capital surrounded by stunning alpine scenery'
+  },
+  { 
+    name: 'Bora Bora', 
+    lat: -16.5004, 
+    lon: -151.7415,
+    continent: 'Oceania',
+    highlights: 'Overwater Bungalows, Mount Otemanu, Lagoon',
+    bestTime: 'May-Oct',
+    description: 'Luxurious French Polynesian island with turquoise lagoon'
+  },
 ];
 
 // Helper function to shuffle and select random destinations
@@ -244,7 +469,7 @@ const GlobeMap = () => {
   const map = useRef<L.Map | null>(null);
   
   // Randomly select destinations on component mount
-  const destinations = useMemo(() => getRandomDestinations(24), []);
+  const destinations = useMemo(() => getRandomDestinations(30), []);
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return;

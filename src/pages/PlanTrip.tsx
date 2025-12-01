@@ -50,39 +50,49 @@ const PlanTrip = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data: tripData, error } = await supabase.from("trips").insert({
-        user_id: user.id,
-        destination: data.destination,
-        start_date: data.startDate ? format(data.startDate, "yyyy-MM-dd") : null,
-        end_date: data.endDate ? format(data.endDate, "yyyy-MM-dd") : null,
-        budget_tier: data.budgetTier,
-        travel_style: data.travelStyle,
-        group_size: data.groupSize,
-        status: "draft",
-      }).select().single();
+      const { data: tripData, error } = await supabase
+        .from("trips")
+        .insert({
+          user_id: user.id,
+          destination: data.destination,
+          start_date: data.startDate ? format(data.startDate, "yyyy-MM-dd") : null,
+          end_date: data.endDate ? format(data.endDate, "yyyy-MM-dd") : null,
+          budget_tier: data.budgetTier,
+          travel_style: data.travelStyle,
+          group_size: data.groupSize,
+          status: "draft",
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
-      // Trigger AI workflow
-      const { error: functionError } = await supabase.functions.invoke('generate-itinerary', {
-        body: { tripId: tripData.id }
+      // Navigate immediately so the user can see AI agents working
+      toast({
+        title: "Trip created!",
+        description: "AI agents are now planning your perfect itinerary. Check the dashboard for real-time updates.",
       });
-
-      if (functionError) {
-        console.error("Error triggering AI workflow:", functionError);
-        toast({
-          title: "Trip created with warning",
-          description: "Trip saved but AI generation encountered an issue. You can retry from the dashboard.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Trip created!",
-          description: "AI agents are now planning your perfect itinerary. Check the dashboard for real-time updates.",
-        });
-      }
-
       navigate("/dashboard");
+
+      // Fire-and-forget AI workflow so navigation isn't blocked
+      supabase.functions
+        .invoke("generate-itinerary", {
+          body: { tripId: tripData.id },
+        })
+        .then(({ error: functionError }) => {
+          if (functionError) {
+            console.error("Error triggering AI workflow:", functionError);
+            toast({
+              title: "Trip created with warning",
+              description:
+                "Trip saved but AI generation encountered an issue. You can retry from the dashboard.",
+              variant: "destructive",
+            });
+          }
+        })
+        .catch((functionError: any) => {
+          console.error("Error triggering AI workflow:", functionError);
+        });
     } catch (error: any) {
       toast({
         title: "Error",

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,14 +19,26 @@ interface TripContext {
   groupSize?: number;
 }
 
+export interface TripChatbotRef {
+  open: () => void;
+  close: () => void;
+  toggle: () => void;
+}
+
 interface TripChatbotProps {
   tripContext?: TripContext;
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/trip-chat`;
 
-const TripChatbot: React.FC<TripChatbotProps> = ({ tripContext }) => {
+const TripChatbot = forwardRef<TripChatbotRef, TripChatbotProps>(({ tripContext }, ref) => {
   const [isOpen, setIsOpen] = useState(false);
+
+  useImperativeHandle(ref, () => ({
+    open: () => setIsOpen(true),
+    close: () => setIsOpen(false),
+    toggle: () => setIsOpen(prev => !prev),
+  }));
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: 'Hi! 👋 I\'m your SmartTrip assistant. How can I help you with your travel plans today?' }
   ]);
@@ -223,6 +235,8 @@ const TripChatbot: React.FC<TripChatbotProps> = ({ tripContext }) => {
       </div>
     </>
   );
-};
+});
+
+TripChatbot.displayName = 'TripChatbot';
 
 export default TripChatbot;

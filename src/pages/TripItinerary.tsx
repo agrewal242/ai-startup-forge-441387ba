@@ -1,16 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Calendar, DollarSign, MapPin, Clock, Users, Plane } from "lucide-react";
+import { ArrowLeft, Calendar, DollarSign, MapPin, Clock, Users, Plane, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { AgentProgressTracker } from "@/components/AgentProgressTracker";
 import { SmartTripLogo } from "@/components/SmartTripLogo";
-import TripChatbot from "@/components/TripChatbot";
+import TripChatbot, { TripChatbotRef } from "@/components/TripChatbot";
 
 type Trip = {
   id: string;
@@ -30,6 +30,7 @@ const TripItinerary = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const chatbotRef = useRef<TripChatbotRef>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -221,6 +222,13 @@ const TripItinerary = () => {
               <p className="text-muted-foreground text-lg">Your personalized travel itinerary</p>
             </div>
             <div className="flex flex-col gap-2 items-end">
+              <Button 
+                onClick={() => chatbotRef.current?.open()}
+                className="mb-2"
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Chat with AI
+              </Button>
               <Badge variant="default" className="text-lg px-4 py-2">
                 {trip.travel_style}
               </Badge>
@@ -382,6 +390,7 @@ const TripItinerary = () => {
         )}
 
         <TripChatbot 
+          ref={chatbotRef}
           tripContext={{
             destination: trip.destination,
             startDate: trip.start_date || undefined,

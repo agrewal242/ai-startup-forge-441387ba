@@ -389,6 +389,33 @@ const TripItinerary = () => {
           </Card>
         )}
 
+        {/* AI Chat Assistant Section */}
+        <Card className="mt-8 bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
+          <CardContent className="pt-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
+                  <MessageCircle className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">Need Help with Your Trip?</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Chat with our AI assistant for personalized travel tips and recommendations
+                  </p>
+                </div>
+              </div>
+              <Button 
+                size="lg"
+                onClick={() => chatbotRef.current?.open()}
+                className="whitespace-nowrap"
+              >
+                <MessageCircle className="h-5 w-5 mr-2" />
+                Chat with AI Assistant
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         <TripChatbot 
           ref={chatbotRef}
           tripContext={{

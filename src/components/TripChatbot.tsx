@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
+import { createPortal } from 'react-dom';
 import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,12 +34,19 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/trip-chat`;
 
 const TripChatbot = forwardRef<TripChatbotRef, TripChatbotProps>(({ tripContext }, ref) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    console.log('TripChatbot mounted');
+  }, []);
 
   useImperativeHandle(ref, () => ({
     open: () => setIsOpen(true),
     close: () => setIsOpen(false),
     toggle: () => setIsOpen(prev => !prev),
   }));
+
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: 'Hi! 👋 I\'m your SmartTrip assistant. How can I help you with your travel plans today?' }
   ]);
@@ -94,7 +102,6 @@ const TripChatbot = forwardRef<TripChatbotRef, TripChatbotProps>(({ tripContext 
 
       const decoder = new TextDecoder();
 
-      // Add empty assistant message to update
       setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
 
       while (true) {
@@ -144,28 +151,54 @@ const TripChatbot = forwardRef<TripChatbotRef, TripChatbotProps>(({ tripContext 
     }
   };
 
-  return (
+  const chatContent = (
     <>
       {/* Floating Button */}
-      <Button
+      <button
         onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          "fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg transition-all duration-300",
-          "bg-primary hover:bg-primary/90",
-          isOpen && "rotate-90"
-        )}
-        size="icon"
+        style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          zIndex: 9999,
+          width: '56px',
+          height: '56px',
+          borderRadius: '50%',
+          backgroundColor: '#4FA3FF',
+          color: 'white',
+          border: 'none',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'transform 0.3s ease',
+          transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
+        }}
+        aria-label="Open chat"
       >
         {isOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
-      </Button>
+      </button>
 
       {/* Chat Panel */}
       <div
-        className={cn(
-          "fixed bottom-24 right-6 z-50 w-80 sm:w-96 rounded-2xl shadow-2xl transition-all duration-300 transform origin-bottom-right",
-          "bg-card border border-border",
-          isOpen ? "scale-100 opacity-100" : "scale-95 opacity-0 pointer-events-none"
-        )}
+        style={{
+          position: 'fixed',
+          bottom: '96px',
+          right: '24px',
+          zIndex: 9999,
+          width: '384px',
+          maxWidth: 'calc(100vw - 48px)',
+          borderRadius: '16px',
+          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+          backgroundColor: 'white',
+          border: '1px solid #e5e7eb',
+          transform: isOpen ? 'scale(1)' : 'scale(0.95)',
+          opacity: isOpen ? 1 : 0,
+          pointerEvents: isOpen ? 'auto' : 'none',
+          transition: 'all 0.3s ease',
+          transformOrigin: 'bottom right',
+        }}
       >
         {/* Header */}
         <div className="flex items-center gap-3 p-4 border-b border-border bg-primary/5 rounded-t-2xl">
@@ -235,6 +268,11 @@ const TripChatbot = forwardRef<TripChatbotRef, TripChatbotProps>(({ tripContext 
       </div>
     </>
   );
+
+  // Use portal to render at document body level
+  if (!mounted) return null;
+  
+  return createPortal(chatContent, document.body);
 });
 
 TripChatbot.displayName = 'TripChatbot';

@@ -415,19 +415,19 @@ const TripItinerary = () => {
             </div>
           </CardContent>
         </Card>
-
-        <TripChatbot 
-          ref={chatbotRef}
-          tripContext={{
-            destination: trip.destination,
-            startDate: trip.start_date || undefined,
-            endDate: trip.end_date || undefined,
-            travelStyle: trip.travel_style,
-            budgetTier: trip.budget_tier,
-            groupSize: trip.group_size
-          }}
-        />
       </main>
+
+      <TripChatbot 
+        ref={chatbotRef}
+        tripContext={{
+          destination: trip.destination,
+          startDate: trip.start_date || undefined,
+          endDate: trip.end_date || undefined,
+          travelStyle: trip.travel_style,
+          budgetTier: trip.budget_tier,
+          groupSize: trip.group_size
+        }}
+      />
     </div>
   );
 };

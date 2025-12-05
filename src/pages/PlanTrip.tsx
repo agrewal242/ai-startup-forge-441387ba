@@ -17,6 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { SmartTripLogo } from "@/components/SmartTripLogo";
+import TripChatbot from "@/components/TripChatbot";
 
 const formSchema = z.object({
   destination: z.string().min(2, "Destination must be at least 2 characters"),
@@ -297,6 +298,8 @@ const PlanTrip = () => {
             </Form>
           </CardContent>
         </Card>
+
+        <TripChatbot />
       </main>
     </div>
   );

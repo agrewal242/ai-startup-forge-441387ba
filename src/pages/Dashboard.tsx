@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
 import { format } from "date-fns";
 import { SmartTripLogo } from "@/components/SmartTripLogo";
+import TripChatbot from "@/components/TripChatbot";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -340,6 +341,8 @@ const Dashboard = () => {
             ))}
           </div>
         )}
+
+        <TripChatbot />
       </main>
     </div>
   );

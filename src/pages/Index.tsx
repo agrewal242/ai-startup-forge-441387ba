@@ -6,6 +6,8 @@ import { Card } from "@/components/ui/card";
 import { LogOut, Brain, Database, Sparkles, TrendingUp, MapPin, Globe2 } from "lucide-react";
 import GlobeMap from "@/components/GlobeMap";
 import { SmartTripLogo } from "@/components/SmartTripLogo";
+import TripChatbot from "@/components/TripChatbot";
+
 const Index = () => {
   const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
@@ -141,6 +143,9 @@ const Index = () => {
           <p>© 2025 SmartTrip AI. Powered by Multi-Agent AI Architecture & Amadeus Travel API</p>
         </div>
       </footer>
+
+      <TripChatbot />
     </div>;
 };
+
 export default Index;

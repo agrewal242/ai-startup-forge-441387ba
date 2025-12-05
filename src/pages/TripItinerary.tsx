@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { AgentProgressTracker } from "@/components/AgentProgressTracker";
 import { SmartTripLogo } from "@/components/SmartTripLogo";
+import TripChatbot from "@/components/TripChatbot";
 
 type Trip = {
   id: string;
@@ -379,6 +380,17 @@ const TripItinerary = () => {
             </CardContent>
           </Card>
         )}
+
+        <TripChatbot 
+          tripContext={{
+            destination: trip.destination,
+            startDate: trip.start_date || undefined,
+            endDate: trip.end_date || undefined,
+            travelStyle: trip.travel_style,
+            budgetTier: trip.budget_tier,
+            groupSize: trip.group_size
+          }}
+        />
       </main>
     </div>
   );
